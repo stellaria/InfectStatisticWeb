@@ -87,7 +87,7 @@ export default {
 	methods: {
 		getTableData() {
 			this.$ajax.get('/get/all', {
-				params: {'date':'2020-02-02'}
+				params: {'date':'2020-02-02'} //数据不全，只能先这样，否则可以调用date函数
 			}).then(
 				(res)=>{
 					var resJson = res.data
