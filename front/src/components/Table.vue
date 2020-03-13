@@ -6,14 +6,14 @@
 			</el-tooltip>
 		</div>
 		
-		<el-row :gutter="24">
+		<el-row :gutter="24" :type="type" :justify="justify">
 			<el-col :span="8" >
 				<el-card shadow="always">
 				<span class="content-title">现有确诊</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #FF6633;">{{tableData[0]}}</span> <br>
+				<span class="content-number" style="color: #FF6633;">{{'0'}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FF6633"><span v-if="yesterday[0]>=0">+</span><span v-else>-</span>{{yesterday[0]}}</span>
+					<span style="color: #FF6633"><span v-if="yesterday[0]>=0">+</span><span v-else>-</span>{{0}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -21,19 +21,9 @@
 				<el-card shadow="always" >
 				<span class="content-title">现有疑似</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #FFCC00">{{tableData[1]}}</span> <br>
+				<span class="content-number" style="color: #FFCC00">{{'0'}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FFCC00"><span v-if="yesterday[1]>=0">+</span><span v-else>-</span>{{yesterday[1]}}</span>
-					</span>
-				</el-card>
-			</el-col>
-			<el-col :span="8" >
-				<el-card shadow="always" >
-				<span class="content-title">现有重症</span> <br>
-				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #006699">{{tableData[2]}}</span> <br>
-				<span class="content-yesterday">昨日
-					<span style="color: #006699"><span v-if="yesterday[2]>=0">+</span><span v-else>-</span>{{yesterday[2]}}</span>
+					<span style="color: #FFCC00"><span v-if="yesterday[1]>=0">+</span><span v-else>-</span>{{0}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -43,9 +33,9 @@
 				<el-card shadow="always" >
 				<span class="content-title">累计确诊</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #FF0000">{{tableData[3]}}</span> <br>
+				<span class="content-number" style="color: #FF0000">{{tableData.infect}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FF0000"><span v-if="yesterday[3]>=0">+</span><span v-else>-</span>{{yesterday[3]}}</span>
+					<span style="color: #FF0000"><span v-if="yesterday.infect>=0">+</span><span v-else>-</span>{{yesterday.infect}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -53,9 +43,9 @@
 				<el-card shadow="always" >
 				<span class="content-title">累计治愈</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #67C23A">{{tableData[4]}}</span> <br>
+				<span class="content-number" style="color: #67C23A">{{tableData.cure}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #67C23A"><span v-if="yesterday[4]>=0">+</span><span v-else>-</span>{{yesterday[4]}}</span>
+					<span style="color: #67C23A"><span v-if="yesterday.cure>=0">+</span><span v-else>-</span>{{yesterday.cure}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -63,9 +53,9 @@
 				<el-card shadow="always" >
 				<span class="content-title">累计死亡</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #000000">{{tableData[5]}}</span> <br>
+				<span class="content-number" style="color: #000000">{{tableData.dead}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #000000"><span v-if="yesterday[5]>=0">+</span><span v-else>-</span>{{yesterday[5]}}</span>
+					<span style="color: #000000"><span v-if="yesterday.dead>=0">+</span><span v-else>-</span>{{yesterday.dead}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -74,21 +64,46 @@
 </template>
 
 <script>
+
 export default {
 	data() {
 		return {
-			tableData: [0,0,0,0,0,0],
-			yesterday: [0,0,0,0,0,0],
-			currentDate: null
+			tableData: {},
+			yesterday: {},
+			currentDate: null,
+			justify: 'center',
+			type: 'flex'
 		}
+	},
+	mounted() {
+		this.getTableData()
+		this.getYesterday()
 	},
 	computed: {
 		current: function() {
 			return new Date().toLocaleDateString();
 		}
 	},
-	method: {
-		
+	methods: {
+		getTableData() {
+			this.$ajax.get('/get/all', {
+				params: {'date':'2020-02-02'}
+			}).then(
+				(res)=>{
+					var resJson = res.data
+					this.tableData = resJson
+				}
+			)
+		},
+		getYesterday() {
+			this.$ajax.get(('/get/all'), {
+				params: {'date': '2020-02-01'}
+			}).then(
+				(res)=> {
+					this.yesterday = res.data
+				}
+			)
+		}
 	}
 }
 </script>

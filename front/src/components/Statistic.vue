@@ -14,7 +14,7 @@ import echarts from 'echarts';
 export default {
     data() {
         return{
-            title: '湖北'
+            title: ''
         }
     },
     props:['province'],

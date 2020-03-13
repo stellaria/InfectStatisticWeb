@@ -11,21 +11,23 @@
 <script>
 import echarts from "echarts";
 import "../../node_modules/echarts/map/js/china.js";
-import _ from "lodash";
+// import _ from "lodash";
 
 export default {
     name: "echarts",
-    props: ["userJson"],
     data() {
         return {
             chart: null,
-            province: null,
+            province: [],
             nowActive: true,
-            sumActive: false
+            sumActive: false,
+            populationMax: 0,
+            populationMin: 0
         };
     },
     created() {
-        this.province = this.getData();
+        // this.province = this.getData();
+        this.getData()
     },
     mounted() {
         this.chinaConfigure();
@@ -38,16 +40,22 @@ export default {
         this.chart = null;
     },
     computed: {
-        populationMax: function() {
-            return _.maxBy(this.province, (o)=>{return o.value}).value
-        },
-        populationMin: function() {
-            return _.minBy(this.province, (o)=>{return o.value}).value
-        }
+        // populationMax: function() {
+        //     // console.log(_.maxBy(this.province, (o)=>{return o.value}))
+        //     // return _.maxBy(this.province, (o)=>{return o.value}).value
+        //     console.log(_)
+        //     console.log('province:')
+        //     console.log(this.province[0])
+        //     return this.province[0]
+        // },
+        // populationMin: function() {
+        //     // console.log(_.minBy(this.province, (o)=>{return o.value}))
+        //     // return _.minBy(this.province, (o)=>{return o.value}).value
+        //     return this.province[1]
+        // }
     },
     methods: {
         chinaConfigure() {
-            console.log(this.userJson);
             let myChart = echarts.init(this.$refs.myEchart); //这里是为了获得容器所在位置
             window.onresize = myChart.resize;
             myChart.setOption({
@@ -109,38 +117,47 @@ export default {
                     {
                         type: "map",
                         geoIndex: 0,
-                        data: this.getData()
+                        data: this.province
                     }
                 ]
             });
             myChart.on('click', (params)=>{
-                this.$store.state.title=params.data.name
+                this.$store.state.title=params.name
                 this.$router.push('/detail')
             })  
         },
-        getData() {
-            return [
-                {
-                    name: "北京",
-                    value: 800
-                },
-                {
-                    name: "上海",
-                    value: 222
-                },
-                {
-                    name: "黑龙江",
-                    value: 333
-                },
-                {
-                    name: "湖北",
-                    value: 810
-                },
-                {
-                    name: "四川",
-                    value: 453
+        async getData() {
+            let res = await this.$ajax.get('/find/by/date', {
+                params:{'date': '2020-02-02'}
+            })
+            if (res.status == 200) {
+                var arr = res.data
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i].provinceName !== '全国') {
+                        this.province.push({name:arr[i].provinceName, value:arr[i].infect})
+                    }
                 }
-            ]
+            }
+            console.log(res)
+            // this.province =  [  
+            //     {name: '北京',value: '100' },{name: '天津',value: Math.random()*1000 },  
+            //     {name: '上海',value: Math.random()*1000 },{name: '重庆',value: Math.random()*1000 },  
+            //     {name: '河北',value: Math.random()*1000 },{name: '河南',value: Math.random()*1000 },  
+            //     {name: '云南',value: Math.random()*1000 },{name: '辽宁',value: Math.random()*1000 },  
+            //     {name: '黑龙江',value: Math.random()*1000 },{name: '湖南',value: Math.random()*1000 },  
+            //     {name: '安徽',value: Math.random()*1000 },{name: '山东',value: Math.random()*1000 },  
+            //     {name: '新疆',value: Math.random()*1000 },{name: '江苏',value: Math.random()*1000 },  
+            //     {name: '浙江',value: Math.random()*1000 },{name: '江西',value: Math.random()*1000 },  
+            //     {name: '湖北',value: Math.random()*1000 },{name: '广西',value: Math.random()*1000 },  
+            //     {name: '甘肃',value: Math.random()*1000 },{name: '山西',value: Math.random()*1000 },  
+            //     {name: '内蒙古',value: Math.random()*1000 },{name: '陕西',value: Math.random()*1000 },  
+            //     {name: '吉林',value: Math.random()*1000 },{name: '福建',value: Math.random()*1000 },  
+            //     {name: '贵州',value: Math.random()*1000 },{name: '广东',value: Math.random()*1000 },  
+            //     {name: '青海',value: Math.random()*1000 },{name: '西藏',value: Math.random()*1000 },  
+            //     {name: '四川',value: Math.random()*1000 },{name: '宁夏',value: Math.random()*1000 },  
+            //     {name: '海南',value: Math.random()*1000 },{name: '台湾',value: Math.random()*1000 },  
+            //     {name: '香港',value: Math.random()*1000 },{name: '澳门',value: Math.random()*1000 }  
+            // ]
         },
         countNow() {
             this.nowActive = true

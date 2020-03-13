@@ -81,7 +81,7 @@ export default {
             tableData: [0,0,0,0],
             yesterday: [0,0,0,0],
 			province: {
-				name: "湖北",
+				name: this.$store.state.title,
 				series: [{
                         name: '新增确诊',
                         type: 'line',
