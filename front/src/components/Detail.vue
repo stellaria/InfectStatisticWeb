@@ -5,8 +5,10 @@
 				<span style="float:right; color:"><span class="el-icon-warning-outline"></span>数据说明</span>
 			</el-tooltip>
 		</div>
-        <el-row :gutter="24">
-			<el-col :span="6" >
+        <el-row :gutter="24"
+		:type="flex"
+		:justify="justify">
+			<!-- <el-col :span="6" >
 				<el-card shadow="always">
 				<span class="content-title">现有确诊</span> <br>
 				<div style="margin-top:5px;"></div>
@@ -15,14 +17,14 @@
 					<span style="color: #FF6633"><span v-if="yesterday[0]>=0">+</span><span v-else>-</span>{{yesterday[0]}}</span>
 					</span>
 				</el-card>
-			</el-col>
+			</el-col> -->
 			<el-col :span="6" >
 				<el-card shadow="always" >
 				<span class="content-title">累计确诊</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #FF0000">{{tableData[1]}}</span> <br>
+				<span class="content-number" style="color: #FF0000">{{tableData[0]}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FF0000"><span v-if="yesterday[1]>=0">+</span><span v-else>-</span>{{yesterday[1]}}</span>
+					<span style="color: #FF0000"><span v-if="yesterday[0]>=0">+</span><span v-else>-</span>{{yesterday[0]}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -30,9 +32,9 @@
 				<el-card shadow="always" >
 				<span class="content-title">累计治愈</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #67C23A">{{tableData[2]}}</span> <br>
+				<span class="content-number" style="color: #67C23A">{{tableData[1]}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #67C23A"><span v-if="yesterday[2]>=0">+</span><span v-else>-</span>{{yesterday[2]}}</span>
+					<span style="color: #67C23A"><span v-if="yesterday[1]>=0">+</span><span v-else>-</span>{{yesterday[1]}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -80,14 +82,12 @@ export default {
 			date: '',
             title: '',
             tableData: [],
-            yesterday: [],
+			yesterday: [],
+			flex: 'flex',
+			justify: 'space-around',
 			province: {
 				name: this.$store.state.title,
-				series: [{
-                        name: '新增确诊',
-                        type: 'line',
-                        data: []
-                    },
+				series: [
                     {
                         name: '累计确诊',
                         type: 'line',
@@ -134,7 +134,8 @@ export default {
     },
     mounted() {
 		this.title = this.$store.state.title
-		this.loadData()
+		this.loadData('2020-02-02')
+		this.loadYesterday('2020-02-02')
     },
     computed: {
 		current: function() {
@@ -143,7 +144,25 @@ export default {
 	},
 	watch: {
 		date: function(newDate, oldDate) {
-			console.log(newDate, oldDate)
+			if (newDate !== null) {
+				var newVar = newDate.getFullYear() + '-'
+				if (newDate.getMonth()+1 < 10)
+					newVar += '0'
+				newVar += newDate.getMonth()+1+'-'
+				if (newDate.getDate() < 10)
+					newVar += '0'
+				newVar += newDate.getDate()
+			}
+			if (oldDate === null) {
+				this.loadTableData(newVar)
+				this.loadYesterday(newVar)
+			} else if (newDate === null && oldDate !== null) {
+				this.loadTableData('2020-02-02')
+				this.loadYesterday('2020-02-02')
+			} else {
+				this.loadTableData(newVar)
+				this.loadYesterday(newVar)
+			}
 			// this.loading = true
 		}
 	},
@@ -159,7 +178,7 @@ export default {
                     trigger: 'axis'
                 },
                 legend: {
-                    data: ['新增确诊', '累计确诊', '累计治愈', '累计死亡']
+                    data: ['累计确诊', '累计治愈', '累计死亡']
                 },
                 grid: {
                     left: '3%',
@@ -191,7 +210,7 @@ export default {
 				series: this.province.series
             })
         },
-		loadData() {
+		loadData(date) {
             this.$ajax.get('/find/by/province', {
                 params:{
                     provinceName: this.title
@@ -202,20 +221,58 @@ export default {
 					var datelist = []
 					for (var i = 0; i < arr.length; i++) {
 						datelist.push(arr[i].date.substr(5))
-						this.province.series[0].data.push(0)//新增
-						this.province.series[1].data.push(arr[i].infect)
-						this.province.series[2].data.push(arr[i].cure)
-						this.province.series[3].data.push(arr[i].dead)
+						if (date === arr[i].date) {
+							this.tableData.push(arr[i].infect)
+							this.tableData.push(arr[i].cure)
+							this.tableData.push(arr[i].dead)
+						}
+						this.province.series[0].data.push(arr[i].infect)
+						this.province.series[1].data.push(arr[i].cure)
+						this.province.series[2].data.push(arr[i].dead)
 					}
 					this.province.datelist = datelist
-					this.tableData.push(0)
-					this.tableData.push(arr[arr.length-1].infect)
-					this.tableData.push(arr[arr.length-1].cure)
-					this.tableData.push(arr[arr.length-1].dead)
+					
 					this.statsInit()
                 }
             )
-        }
+		},
+		loadYesterday(date){
+			this.$ajax.get('/get/sub/province', {
+                params:{
+					provinceName: this.title,
+					date: date
+                }
+            }).then(
+				res=>{
+					var arr = res.data
+					var yest = []
+					yest.push(arr[arr.length-1].infect)
+					yest.push(arr[arr.length-1].cure)
+					yest.push(arr[arr.length-1].dead)
+					this.yesterday = yest
+				}
+			)
+		},
+		loadTableData(date) {
+			this.$ajax.get('/find/by/province', {
+                params:{
+                    provinceName: this.title
+                }
+            }).then(
+                res => {
+					var arr = res.data
+					var datalist = []
+					for (var i = 0; i < arr.length; i++) {
+						if (date === arr[i].date) {
+							datalist.push(arr[i].infect)
+							datalist.push(arr[i].cure)
+							datalist.push(arr[i].dead)
+						}
+					}
+					this.tableData = datalist
+                }
+            )
+		}
 	}
 }
 </script>
