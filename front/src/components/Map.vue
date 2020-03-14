@@ -73,7 +73,7 @@ export default {
                     // text: ["High", "Low"],
                     realtime: true,
                     calculable: true,
-                    color: ["#000066", "lightgray"]
+                    color: ["#000066", "white"]
                 },
                 geo: {
                 // 这个是重点配置区

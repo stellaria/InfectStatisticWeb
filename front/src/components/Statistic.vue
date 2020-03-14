@@ -14,13 +14,15 @@ import echarts from 'echarts';
 export default {
     data() {
         return{
-            title: ''
+            title: '',
+            xAxis: [],
+            dataset: {}
         }
     },
     props:['province'],
     mounted() {
         this.title = this.province.name
-        this.statsInit()
+        this.loadData()
     },
     methods: {
         statsInit() {
@@ -50,13 +52,16 @@ export default {
                 xAxis: {
                     type: 'category',
                     boundaryGap: false,
-                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                    data: this.province.datelist
                 },
                 yAxis: {
                     type: 'value'
                 },
                 series: this.province.series
             })
+        },
+        loadData() {
+            this.statsInit()
         }
     }
 }

@@ -35,7 +35,7 @@
 				<div style="margin-top:5px;"></div>
 				<span class="content-number" style="color: #FF0000">{{tableData.infect}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FF0000"><span v-if="yesterday.infect>=0">+</span><span v-else>-</span>{{yesterday.infect}}</span>
+					<span style="color: #FF0000"><span v-if="tableData.infect-yesterday.infect>=0">+</span><span v-else>-</span>{{tableData.infect-yesterday.infect}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -45,7 +45,7 @@
 				<div style="margin-top:5px;"></div>
 				<span class="content-number" style="color: #67C23A">{{tableData.cure}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #67C23A"><span v-if="yesterday.cure>=0">+</span><span v-else>-</span>{{yesterday.cure}}</span>
+					<span style="color: #67C23A"><span v-if="tableData.cure-yesterday.cure>=0">+</span><span v-else>-</span>{{tableData.cure-yesterday.cure}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -55,7 +55,7 @@
 				<div style="margin-top:5px;"></div>
 				<span class="content-number" style="color: #000000">{{tableData.dead}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #000000"><span v-if="yesterday.dead>=0">+</span><span v-else>-</span>{{yesterday.dead}}</span>
+					<span style="color: #000000"><span v-if="tableData.dead-yesterday.dead>=0">+</span><span v-else>-</span>{{tableData.dead-yesterday.dead}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -81,7 +81,7 @@ export default {
 	},
 	computed: {
 		current: function() {
-			return new Date().toLocaleDateString();
+			return new Date('2020-02-02').toLocaleDateString();
 		}
 	},
 	methods: {

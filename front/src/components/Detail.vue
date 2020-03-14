@@ -60,56 +60,54 @@
 		<div 
 		v-loading="loading"
 		element-loading-text="玩命加载中">
-			<Stats :province="province"></Stats>
+			<div
+			:style="{height:'600px',width:'800px',margin:'0 auto'}"
+			ref="stats"
+			></div>
 		</div>
     </div>
 </template>
 
 <script>
-import Stats from '@/components/Statistic.vue';
+// import _ from 'lodash'
+import echarts from 'echarts';
 
 export default {
 
-    components: {
-        Stats
-    },
     data() {
         return {
 			loading: false,
 			date: '',
-            title: '湖北',
-            tableData: [0,0,0,0],
-            yesterday: [0,0,0,0],
+            title: '',
+            tableData: [],
+            yesterday: [],
 			province: {
 				name: this.$store.state.title,
 				series: [{
                         name: '新增确诊',
                         type: 'line',
-                        stack: '总量',
-                        data: [120, 132, 101, 134, 90, 230, 210]
+                        data: []
                     },
                     {
                         name: '累计确诊',
                         type: 'line',
-                        stack: '总量',
-                        data: [220, 182, 191, 234, 290, 330, 310]
+                        data: []
                     },
                     {
                         name: '累计治愈',
                         type: 'line',
-                        stack: '总量',
-                        data: [150, 232, 201, 154, 190, 330, 410]
+                        data: []
                     },
                     {
                         name: '累计死亡',
                         type: 'line',
-                        stack: '总量',
-                        data: [320, 332, 301, 334, 390, 330, 320]
-                    }]
+                        data: []
+					}],
+				datelist: []
 			},
 			pickerOptions: {
 				disabledDate(time) {
-					return time.getTime() > Date.now();
+					return time.getTime() > new Date("2020-02-02").getTime() || time.getTime() < new Date('2020-01-18').getTime();
 				},
 				shortcuts: [{
 					text: '今天',
@@ -135,18 +133,89 @@ export default {
         }
     },
     mounted() {
-        this.title = this.$store.state.title
+		this.title = this.$store.state.title
+		this.loadData()
     },
     computed: {
 		current: function() {
-			return new Date().toLocaleDateString();
+			return new Date('2020-02-02').toLocaleDateString();
 		}
 	},
 	watch: {
-		date: function(newDate) {
-			console.log(newDate)
-			this.loading = true
+		date: function(newDate, oldDate) {
+			console.log(newDate, oldDate)
+			// this.loading = true
 		}
+	},
+	methods: {
+		statsInit() {
+            let stats = echarts.init(this.$refs.stats);
+            window.onresize = stats.resize;
+            stats.setOption({
+                title: {
+                    text: this.title+'趋势图'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['新增确诊', '累计确诊', '累计治愈', '累计死亡']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+					boundaryGap: false,
+					data: this.province.datelist,
+					axisLabel: {
+						rotate: 45,
+						interval: 0,
+						color: 'gray'
+					}
+                },
+                yAxis: {
+					type: 'value',
+					axisLabel: {
+						color: 'gray'
+					}
+                },
+				series: this.province.series
+            })
+        },
+		loadData() {
+            this.$ajax.get('/find/by/province', {
+                params:{
+                    provinceName: this.title
+                }
+            }).then(
+                res => {
+                    var arr = res.data
+					var datelist = []
+					for (var i = 0; i < arr.length; i++) {
+						datelist.push(arr[i].date.substr(5))
+						this.province.series[0].data.push(0)//新增
+						this.province.series[1].data.push(arr[i].infect)
+						this.province.series[2].data.push(arr[i].cure)
+						this.province.series[3].data.push(arr[i].dead)
+					}
+					this.province.datelist = datelist
+					this.tableData.push(0)
+					this.tableData.push(arr[arr.length-1].infect)
+					this.tableData.push(arr[arr.length-1].cure)
+					this.tableData.push(arr[arr.length-1].dead)
+					this.statsInit()
+                }
+            )
+        }
 	}
 }
 </script>
