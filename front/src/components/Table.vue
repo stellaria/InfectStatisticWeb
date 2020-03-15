@@ -11,9 +11,9 @@
 				<el-card shadow="always">
 				<span class="content-title">现有确诊</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #FF6633;">{{'0'}}</span> <br>
+				<span class="content-number" style="color: #FF6633;">{{tableData.infect}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FF6633"><span v-if="yesterday[0]>=0">+</span><span v-else>-</span>{{0}}</span>
+					<span style="color: #FF6633"><span v-if="tableData.infect-yesterday.infect>=0">+</span><span v-else>-</span>{{tableData.infect-yesterday.infect}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -21,9 +21,9 @@
 				<el-card shadow="always" >
 				<span class="content-title">现有疑似</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #FFCC00">{{'0'}}</span> <br>
+				<span class="content-number" style="color: #FFCC00">{{tableData.doubt}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FFCC00"><span v-if="yesterday[1]>=0">+</span><span v-else>-</span>{{0}}</span>
+					<span style="color: #FFCC00"><span v-if="tableData.infect-yesterday.infect>=0">+</span><span v-else>-</span>{{tableData.infect-yesterday.infect}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -33,9 +33,9 @@
 				<el-card shadow="always" >
 				<span class="content-title">累计确诊</span> <br>
 				<div style="margin-top:5px;"></div>
-				<span class="content-number" style="color: #FF0000">{{tableData.infect}}</span> <br>
+				<span class="content-number" style="color: #FF0000">{{tableData.sumCount}}</span> <br>
 				<span class="content-yesterday">昨日
-					<span style="color: #FF0000"><span v-if="tableData.infect-yesterday.infect>=0">+</span><span v-else>-</span>{{tableData.infect-yesterday.infect}}</span>
+					<span style="color: #FF0000"><span v-if="tableData.sumCount-yesterday.sumCount>=0">+</span><span v-else>-</span>{{tableData.sumCount-yesterday.sumCount}}</span>
 					</span>
 				</el-card>
 			</el-col>
@@ -92,6 +92,11 @@ export default {
 				(res)=>{
 					var resJson = res.data
 					this.tableData = resJson
+					var count = 0
+					count += this.tableData.infect
+					count += this.tableData.cure
+					count += this.tableData.dead
+					this.tableData.sumCount = count
 				}
 			)
 		},
@@ -101,6 +106,11 @@ export default {
 			}).then(
 				(res)=> {
 					this.yesterday = res.data
+					var count = 0
+					count += this.yesterday.infect
+					count += this.yesterday.cure
+					count += this.yesterday.dead
+					this.yesterday.sumCount = count
 				}
 			)
 		}

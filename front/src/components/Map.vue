@@ -19,8 +19,8 @@ export default {
         return {
             chart: null,
             province: [],
-            nowActive: true,
-            sumActive: false,
+            nowActive: false,
+            sumActive: true,
         };
     },
     created() {
