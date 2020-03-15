@@ -19,8 +19,8 @@ export default {
         return {
             chart: null,
             province: [],
-            nowActive: false,
-            sumActive: true,
+            nowActive: true,
+            sumActive: false,
         };
     },
     created() {
@@ -68,8 +68,8 @@ export default {
                 }, // 鼠标移到图里面的浮动提示框
                 dataRange: {
                     show: true,
-                    min: this.populationMin,
-                    max: this.populationMax,
+                    min: _.minBy(this.province, (o)=>{return o.value}).value,
+                    max: _.maxBy(this.province, (o)=>{return o.value}).value,
                     // text: ["High", "Low"],
                     realtime: true,
                     calculable: true,
@@ -119,25 +119,59 @@ export default {
             })  
         },
         async getData() {
-            let res = await this.$ajax.get('/find/by/date', {
-                params:{'date': '2020-02-02'}
-            })
-            if (res.status == 200) {
-                var arr = res.data
-                for (var i = 0; i < arr.length; i++) {
-                    if (arr[i].provinceName !== '全国') {
-                        this.province.push({name:arr[i].provinceName, value:arr[i].infect})
+            if (this.$store.state.province.length === 0 || this.$store.state.type !== 'now') {
+                let res = await this.$ajax.get('/find/by/date', {
+                    params:{'date': '2020-02-02'}
+                })
+                if (res.status == 200) {
+                    var arr = res.data
+                    var provinceArr = []
+                    for (var i = 0; i < arr.length; i++) {
+                        if (arr[i].provinceName !== '全国') {
+                            provinceArr.push({name:arr[i].provinceName, value:arr[i].infect})
+                        }
                     }
+                    this.province = provinceArr
+                    this.$store.state.province = this.province
+                    this.$store.state.type = 'now'
+                    this.chinaConfigure()
                 }
-                
+            } else {
+                this.province = this.$store.state.province
+                this.chinaConfigure()
+            }
+        },
+        async getSumData() {
+            if (this.$store.state.province.length === 0 || this.$store.state.type !== 'sum') {
+                let res = await this.$ajax.get('/getSum', {
+                    params:{'date': '2020-02-02'}
+                })
+                if (res.status == 200) {
+                    var arr = res.data
+                    var provinceArr = []
+                    for (var i = 0; i < arr.length; i++) {
+                        if (arr[i].provinceName !== '全国') {
+                            provinceArr.push({name:arr[i].provinceName, value:arr[i].infect})
+                        }
+                    }
+                    
+                    this.province = provinceArr
+                    this.$store.state.province = this.province
+                    this.$store.state.type = 'sum'
+                    this.chinaConfigure()
+                }
+            } else {
+                this.province = this.$store.state.province
                 this.chinaConfigure()
             }
         },
         countNow() {
+            this.getData()
             this.nowActive = true
             this.sumActive = false
         },
         countSum() {
+            this.getSumData()
             this.nowActive = false
             this.sumActive = true
         },
